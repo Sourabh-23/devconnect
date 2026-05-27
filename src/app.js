@@ -1,6 +1,9 @@
 const express = require('express');
 const dotenv = require('dotenv');
+const authMiddleware = require('./middleware/auth.middleware');
 const authRoutes = require('./modules/auth/auth.routes');
+const usersRoutes = require('./modules/users/users.routes'); // ← add karo
+const postsRoutes = require('./modules/posts/posts.routes');
 
 dotenv.config();
 
@@ -11,10 +14,19 @@ app.use(express.json());
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/users', usersRoutes); 
+app.use('/api/posts', postsRoutes);
 
 // Health check
 app.get('/health', (req, res) => {
   res.status(200).json({ message: 'Server is running' });
+});
+
+app.get('/api/protected', authMiddleware, (req, res) => {
+    res.json({ 
+        message: 'Protected route access mila!',
+        user: req.user 
+    });
 });
 
 // Error handling middleware

@@ -10,6 +10,8 @@
 // module.exports = client;
 
 const redis = require('redis');
+require('dotenv').config();
+
 
 const client = redis.createClient({
     socket: {

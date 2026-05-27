@@ -1,28 +1,60 @@
-const authService = require('./auth.service');
+const { registerUser, loginUser, logoutUser } = require('./auth.service');
 
+// Register
 exports.register = async (req, res) => {
-  try {
-    const result = await authService.register(req.body);
-    res.status(201).json(result);
-  } catch (error) {
-    res.status(400).json({ error: error.message });
-  }
+    try {
+        const { username, email, password } = req.body;
+
+        // Validation
+        if (!username || !email || !password) {
+            return res.status(400).json({ message: 'Sab fields bharo' });
+        }
+
+        const result = await registerUser(username, email, password);
+        res.status(201).json({ 
+            message: 'User registered successfully', 
+            data: result 
+        });
+
+    } catch (err) {
+        res.status(400).json({ message: err.message });
+    }
 };
 
+// Login
 exports.login = async (req, res) => {
-  try {
-    const result = await authService.login(req.body);
-    res.status(200).json(result);
-  } catch (error) {
-    res.status(401).json({ error: error.message });
-  }
+    try {
+        const { email, password } = req.body;
+
+        // Validation
+        if (!email || !password) {
+            return res.status(400).json({ message: 'Email aur password bharo' });
+        }
+
+        const result = await loginUser(email, password);
+        res.status(200).json({ 
+            message: 'Login successful', 
+            data: result 
+        });
+
+    } catch (err) {
+        res.status(400).json({ message: err.message });
+    }
 };
 
+// Logout
 exports.logout = async (req, res) => {
-  try {
-    const result = await authService.logout(req.body);
-    res.status(200).json(result);
-  } catch (error) {
-    res.status(400).json({ error: error.message });
-  }
+    try {
+        const token = req.headers.authorization?.split(' ')[1];
+
+        if (!token) {
+            return res.status(400).json({ message: 'Token nahi mila' });
+        }
+
+        const result = await logoutUser(token);
+        res.status(200).json(result);
+
+    } catch (err) {
+        res.status(400).json({ message: err.message });
+    }
 };
