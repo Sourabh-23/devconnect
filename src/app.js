@@ -1,20 +1,28 @@
 const express = require('express');
+const http = require('http'); // ← add karo
 const dotenv = require('dotenv');
 const authMiddleware = require('./middleware/auth.middleware');
 const authRoutes = require('./modules/auth/auth.routes');
-const usersRoutes = require('./modules/users/users.routes'); // ← add karo
+const usersRoutes = require('./modules/users/users.routes');
 const postsRoutes = require('./modules/posts/posts.routes');
+const { initSocket } = require('./config/socket'); // ← add karo
+const connectMongo = require('./config/mongodb'); // ← add karo
 
 dotenv.config();
 
-const app = express();
+// Email worker start karo
+require('./queues/workers/emailWorker');
 
+const app = express();
+const server = http.createServer(app); // ← add karo
+initSocket(server); // ← add karo
+connectMongo(); // ← add karo
 // Middleware
 app.use(express.json());
 
 // Routes
 app.use('/api/auth', authRoutes);
-app.use('/api/users', usersRoutes); 
+app.use('/api/users', usersRoutes);
 app.use('/api/posts', postsRoutes);
 
 // Health check
@@ -37,7 +45,7 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, () => {
+server.listen(PORT, () => { // ← app.listen se server.listen
   console.log(`Server running on port ${PORT}`);
 });
 

@@ -2,6 +2,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const db = require('../../config/db');
 const redis = require('../../config/redis');
+const emailQueue = require('../../queues/emailQueue'); // ← ADD KARO
 
 // Register
 exports.registerUser = async (username, email, password) => {
@@ -19,6 +20,19 @@ exports.registerUser = async (username, email, password) => {
         email,
         password: hashedPassword,
         created_at: new Date()
+    });
+
+    // Welcome email bhejo ← ADD KARO
+    await emailQueue.add({
+        to: email,
+        subject: 'Welcome to DevConnect! 🚀',
+        html: `
+            <h1>Welcome ${username}!</h1>
+            <p>DevConnect mein aapka swagat hai!</p>
+            <p>Aap ab posts kar sakte hain, developers ko follow kar sakte hain.</p>
+            <br/>
+            <p>Team DevConnect</p>
+        `
     });
 
     return { id, username, email };

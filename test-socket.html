@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Socket Test</title>
+</head>
+<body>
+    <h1>Socket.IO Test</h1>
+    <div id="notifications"></div>
+
+    <script src="http://localhost:3000/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io('http://localhost:3000');
+
+        // Connect hone par
+        socket.on('connect', () => {
+            console.log('Connected! Socket ID:', socket.id);
+
+            // User 1 register karo
+            socket.emit('register', '1');
+            console.log('User 1 registered!');
+        });
+
+        // Notification aane par
+        socket.on('notification', (data) => {
+            console.log('Notification aaya!', data);
+            document.getElementById('notifications').innerHTML += 
+                `<p>🔔 ${data.message}</p>`;
+        });
+    </script>
+</body>
+</html>

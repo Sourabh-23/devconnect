@@ -1,4 +1,5 @@
 const db = require('../../config/db');
+const { sendNotification } = require('../../config/socket');
 
 // Post banao
 exports.createPost = async (userId, title, content) => {
@@ -30,14 +31,13 @@ exports.getFeed = async () => {
 };
 
 // Like karo
+// Like karo
 exports.likePost = async (userId, postId) => {
-    // Pehle check karo already like kiya hai kya
     const existing = await db('likes')
         .where({ user_id: userId, post_id: postId })
         .first();
 
     if (existing) {
-        // Unlike karo
         await db('likes').where({ user_id: userId, post_id: postId }).delete();
         await db('posts').where({ id: postId }).decrement('likes_count', 1);
         return { message: 'Unlike ho gaya!' };
@@ -46,6 +46,17 @@ exports.likePost = async (userId, postId) => {
     // Like karo
     await db('likes').insert({ user_id: userId, post_id: postId });
     await db('posts').where({ id: postId }).increment('likes_count', 1);
+
+    // Post ka owner kaun hai? ← ANDAR hai
+    const post = await db('posts').where({ id: postId }).first();
+
+    // Owner ko notification bhejo ← ANDAR hai
+    sendNotification(post.user_id, 'notification', {
+        type: 'like',
+        message: `Tumhari post like hui! ❤️`,
+        postId: postId
+    });
+
     return { message: 'Like ho gaya!' };
 };
 
@@ -77,3 +88,4 @@ exports.getComments = async (postId) => {
         )
         .orderBy('comments.created_at', 'desc');
 };
+
