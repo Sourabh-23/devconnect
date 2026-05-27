@@ -5,8 +5,11 @@ const authMiddleware = require('./middleware/auth.middleware');
 const authRoutes = require('./modules/auth/auth.routes');
 const usersRoutes = require('./modules/users/users.routes');
 const postsRoutes = require('./modules/posts/posts.routes');
+const activityRoutes = require('./modules/activity/activity.routes');
+const filesRoutes = require('./modules/files/files.routes');
 const { initSocket } = require('./config/socket'); // ← add karo
 const connectMongo = require('./config/mongodb'); // ← add karo
+const path = require('path');
 
 dotenv.config();
 
@@ -19,11 +22,15 @@ initSocket(server); // ← add karo
 connectMongo(); // ← add karo
 // Middleware
 app.use(express.json());
+// Serve uploaded files when running locally (uploads/)
+app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', usersRoutes);
 app.use('/api/posts', postsRoutes);
+app.use('/api/activity', activityRoutes);
+app.use('/api/files', filesRoutes);
 
 // Health check
 app.get('/health', (req, res) => {

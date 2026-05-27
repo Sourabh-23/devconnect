@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const db = require('../../config/db');
 const redis = require('../../config/redis');
 const emailQueue = require('../../queues/emailQueue'); // ← ADD KARO
+const logActivity = require('../../config/activityLogger');
 
 // Register
 exports.registerUser = async (username, email, password) => {
@@ -21,6 +22,8 @@ exports.registerUser = async (username, email, password) => {
         password: hashedPassword,
         created_at: new Date()
     });
+
+    await logActivity(id, 'register', 'User registered');
 
     // Welcome email bhejo ← ADD KARO
     await emailQueue.add({
@@ -56,6 +59,8 @@ exports.loginUser = async (email, password) => {
         { expiresIn: '24h' }
     );
 
+    await logActivity(user.id, 'login', 'User logged in');
+
     return { 
         accessToken, 
         user: { 
@@ -68,6 +73,8 @@ exports.loginUser = async (email, password) => {
 
 // Logout
 exports.logoutUser = async (token) => {
+    const payload = jwt.verify(token, process.env.JWT_SECRET || 'secret_key');
+    await logActivity(payload.id, 'logout', 'User logged out');
     // Token blacklist karo Redis mein
     await redis.setEx(`blacklist:${token}`, 86400, 'blacklisted');
     return { message: 'Logged out successfully' };

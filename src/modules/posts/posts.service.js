@@ -1,5 +1,6 @@
 const db = require('../../config/db');
 const { sendNotification } = require('../../config/socket');
+const logActivity = require('../../config/activityLogger');
 
 // Post banao
 exports.createPost = async (userId, title, content) => {
@@ -9,6 +10,8 @@ exports.createPost = async (userId, title, content) => {
         content,
         created_at: new Date()
     });
+
+    await logActivity(userId, 'create_post', 'User created a post', { postId: id });
 
     return await db('posts').where({ id }).first();
 };
@@ -47,6 +50,8 @@ exports.likePost = async (userId, postId) => {
     await db('likes').insert({ user_id: userId, post_id: postId });
     await db('posts').where({ id: postId }).increment('likes_count', 1);
 
+    await logActivity(userId, 'like_post', 'User liked a post', { postId });
+
     // Post ka owner kaun hai? ← ANDAR hai
     const post = await db('posts').where({ id: postId }).first();
 
@@ -70,6 +75,8 @@ exports.addComment = async (userId, postId, content) => {
     });
 
     await db('posts').where({ id: postId }).increment('comments_count', 1);
+
+    await logActivity(userId, 'comment', 'User commented on a post', { postId, commentId: id });
 
     return await db('comments').where({ id }).first();
 };
